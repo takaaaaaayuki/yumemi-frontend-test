@@ -1,3 +1,4 @@
+// src/pages/Home.tsx
 import React from 'react';
 import PrefectureSelector from '../components/PrefectureSelector';
 
