@@ -1,11 +1,8 @@
 import React from 'react';
+import Home from './pages/Home';
 
 const App: React.FC = () => {
-  return (
-    <div>
-      <h1>Hello TypeScript React!</h1>
-    </div>
-  );
+  return <Home />;
 };
 
 export default App;
