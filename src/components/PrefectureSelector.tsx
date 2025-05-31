@@ -1,15 +1,15 @@
+// src/components/PrefectureSelector.tsx
 import React, { useEffect, useState } from 'react';
-import { getPrefectures } from '../api/getPrefectures';
-import { Prefecture } from '../types';
+import { getPrefectures, Prefecture } from '../api/getPrefectures';
 
-const PrefectureSelector = () => {
+const PrefectureSelector: React.FC = () => {
   const [prefectures, setPrefectures] = useState<Prefecture[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await getPrefectures();
-        setPrefectures(data.result); // API の仕様に合わせて
+        setPrefectures(data);
       } catch (error) {
         console.error(error);
       }
