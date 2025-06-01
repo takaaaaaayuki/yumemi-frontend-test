@@ -18,30 +18,43 @@ interface PopulationDataItem {
 
 interface Props {
   populationDataList: PopulationDataItem[];
+  selectedPopulationType: string;
 }
 
-const PopulationGraph: React.FC<Props> = ({ populationDataList }) => {
-  if (populationDataList.length === 0)
-    return <p className="text-gray-500">データを選択してください</p>;
+const PopulationGraph: React.FC<Props> = ({
+  populationDataList,
+  selectedPopulationType
+}) => {
+  if (populationDataList.length === 0) {
+    return (
+      <p className="text-gray-500 text-center mt-4">
+        データを選択してください
+      </p>
+    );
+  }
 
-  // まず全ての年をベースにしたデータ構造を作成
+  // 全ての年をベースにデータ構造を作成
   const years: number[] = populationDataList[0].data.data[0].data.map(
     (d) => d.year
   );
 
-  // 年ごとに各都道府県の人口を集約
+  // 年ごとに各都道府県の人口データをまとめる
   const chartData = years.map((year: number, index: number) => {
     const dataPoint: { [key: string]: number | string } = { year };
     populationDataList.forEach((item) => {
-      const total = item.data.data[0].data[index].value;
-      dataPoint[item.prefName] = total;
+      const targetDataEntry = item.data.data.find(
+        (d) => d.label === selectedPopulationType
+      );
+      if (targetDataEntry) {
+        dataPoint[item.prefName] = targetDataEntry.data[index].value;
+      }
     });
     return dataPoint;
   });
 
-  // カラーを都道府県ごとに固定的に生成する（例: prefCodeベースの色）
-  const getColor = (prefCode: number) => {
-    const color = (prefCode * 2654435761) % 16777215;
+  // 都道府県ごとに固定のカラーを生成
+  const getColor = (prefCode: number): string => {
+    const color = (prefCode * 2654435761) % 0xffffff;
     return `#${color.toString(16).padStart(6, '0')}`;
   };
 
