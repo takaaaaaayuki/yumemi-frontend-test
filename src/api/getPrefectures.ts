@@ -18,4 +18,6 @@ export interface Prefecture {
     const data = await response.json();
     return data.result;
   };
+
+  
   
