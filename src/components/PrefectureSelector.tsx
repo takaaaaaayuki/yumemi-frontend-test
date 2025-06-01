@@ -13,6 +13,14 @@ const PrefectureSelector: React.FC = () => {
   const [prefectures, setPrefectures] = useState<Prefecture[]>([]);
   const [selectedPrefs, setSelectedPrefs] = useState<number[]>([]);
   const [populationDataList, setPopulationDataList] = useState<PopulationDataItem[]>([]);
+  const [loadingPrefCode, setLoadingPrefCode] = useState<number | null>(null);
+
+  // 人口区分（総人口 / 年少人口 / 生産年齢人口 / 老年人口）
+  const [selectedPopulationType, setSelectedPopulationType] = useState<string>('総人口');
+
+  const handlePopulationTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedPopulationType(e.target.value);
+  };
 
   // 都道府県一覧取得
   useEffect(() => {
@@ -27,30 +35,40 @@ const PrefectureSelector: React.FC = () => {
     fetchPrefectures();
   }, []);
 
-  // チェックボックス選択状態変更
-  const handleCheckboxChange = async (prefCode: number, prefName: string) => {
+  // 選択状態が変わるたびに人口データを更新
+  useEffect(() => {
+    const fetchPopulationData = async () => {
+      const latestPrefCode = selectedPrefs[selectedPrefs.length - 1];
+      if (latestPrefCode && !populationDataList.find((item) => item.prefCode === latestPrefCode)) {
+        try {
+          setLoadingPrefCode(latestPrefCode);
+          const data = await getPopulation(latestPrefCode);
+          const prefName = prefectures.find((pref) => pref.prefCode === latestPrefCode)?.prefName || '';
+          setPopulationDataList((prev) => [
+            ...prev,
+            { prefCode: latestPrefCode, prefName, data }
+          ]);
+        } catch (error) {
+          console.error('人口構成データの取得に失敗しました', error);
+        } finally {
+          setLoadingPrefCode(null);
+        }
+      }
+    };
+    fetchPopulationData();
+  }, [selectedPrefs, prefectures, populationDataList]);
+
+  // チェックボックス切り替え
+  const handleCheckboxChange = (prefCode: number) => {
     setSelectedPrefs((prev) =>
       prev.includes(prefCode)
         ? prev.filter((code) => code !== prefCode)
         : [...prev, prefCode]
     );
 
-    // 選択に応じてデータ取得
-    if (!selectedPrefs.includes(prefCode)) {
-      try {
-        const data = await getPopulation(prefCode);
-        setPopulationDataList((prev) => [
-          ...prev,
-          { prefCode, prefName, data },
-        ]);
-      } catch (error) {
-        console.error('人口構成データの取得に失敗しました', error);
-      }
-    } else {
-      // チェックを外したらリストから除外
-      setPopulationDataList((prev) =>
-        prev.filter((item) => item.prefCode !== prefCode)
-      );
+    // チェックを外したらデータも除外
+    if (selectedPrefs.includes(prefCode)) {
+      setPopulationDataList((prev) => prev.filter((item) => item.prefCode !== prefCode));
     }
   };
 
@@ -66,7 +84,7 @@ const PrefectureSelector: React.FC = () => {
             <input
               type="checkbox"
               checked={selectedPrefs.includes(pref.prefCode)}
-              onChange={() => handleCheckboxChange(pref.prefCode, pref.prefName)}
+              onChange={() => handleCheckboxChange(pref.prefCode)}
               className="accent-blue-500"
             />
             {pref.prefName}
@@ -74,8 +92,34 @@ const PrefectureSelector: React.FC = () => {
         ))}
       </div>
 
+      {loadingPrefCode && (
+        <p className="text-sm text-blue-500 mt-2">
+          {prefectures.find((p) => p.prefCode === loadingPrefCode)?.prefName} の人口データ取得中...
+        </p>
+      )}
+
+      <div className="mt-4 flex items-center gap-2">
+        <label htmlFor="populationType" className="font-medium">
+          表示する人口区分:
+        </label>
+        <select
+          id="populationType"
+          value={selectedPopulationType}
+          onChange={handlePopulationTypeChange}
+          className="border p-1 rounded"
+        >
+          <option value="総人口">総人口</option>
+          <option value="年少人口">年少人口</option>
+          <option value="生産年齢人口">生産年齢人口</option>
+          <option value="老年人口">老年人口</option>
+        </select>
+      </div>
+
       <h3 className="text-lg font-semibold mt-4">人口構成グラフ</h3>
-      <PopulationGraph populationDataList={populationDataList} />
+      <PopulationGraph
+        populationDataList={populationDataList}
+        selectedPopulationType={selectedPopulationType}
+      />
     </div>
   );
 };
