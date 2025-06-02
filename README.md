@@ -21,7 +21,7 @@ Yumemiフロントエンドコーディング試験の課題実装用リポジ�
 ## セットアップ
 
 ```bash
-git clone https://github.com/ユーザー名/yumemi-frontend-test.git
+git clone https://github.com/takaaaaaayuki/yumemi-frontend-test
 cd yumemi-frontend-test
 npm install
 npm start
@@ -38,7 +38,7 @@ JestとReact Testing Libraryを使用。
 
 ## デプロイURL
 
-[https://yumemi-frontend-test-gujofur3k-takayukis-projects-82c509f8.vercel.app]
+[https://yumemi-frontend-test-eosin.vercel.app/]
 
 ## 工夫ポイント
 
