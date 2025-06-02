@@ -38,8 +38,7 @@ JestとReact Testing Libraryを使用。
 
 ## デプロイURL
 
-[https://example.vercel.app/](https://example.vercel.app/)
-（実際のデプロイURLに置き換えてください）
+[https://yumemi-frontend-test-gujofur3k-takayukis-projects-82c509f8.vercel.app]
 
 ## 工夫ポイント
 
