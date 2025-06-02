@@ -9,6 +9,18 @@ interface PopulationDataItem {
   data: PopulationComposition;
 }
 
+// 地方区分のマスタデータ
+const REGION_MAP: { [region: string]: number[] } = {
+  北海道: [1],
+  東北: [2, 3, 4, 5, 6, 7],
+  関東: [8, 9, 10, 11, 12, 13, 14],
+  中部: [15, 16, 17, 18, 19, 20, 21],
+  近畿: [22, 23, 24, 25, 26, 27],
+  中国: [28, 29, 30, 31, 32],
+  四国: [33, 34, 35, 36],
+  九州: [37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47],
+};
+
 const PrefectureSelector: React.FC = () => {
   const [prefectures, setPrefectures] = useState<Prefecture[]>([]);
   const [selectedPrefs, setSelectedPrefs] = useState<number[]>([]);
@@ -64,6 +76,33 @@ const PrefectureSelector: React.FC = () => {
     };
     fetchPopulationData();
   }, [selectedPrefs, prefectures, populationDataList]);
+
+  // 地方選択ハンドラ
+  const handleRegionSelect = async (region: string) => {
+    const regionPrefCodes = REGION_MAP[region] || [];
+    const notSelected = regionPrefCodes.filter((code) => !selectedPrefs.includes(code));
+    const newSelectedPrefs = [...selectedPrefs, ...notSelected];
+    setSelectedPrefs(Array.from(new Set(newSelectedPrefs))); // 重複防止
+
+    // データ更新
+    const newPrefs = notSelected.filter(
+      (code) => !populationDataList.some((item) => item.prefCode === code)
+    );
+
+    // 各都道府県のデータを順次取得
+    for (const code of newPrefs) {
+      try {
+        setLoadingPrefCode(code);
+        const data = await getPopulation(code);
+        const prefName = prefectures.find((pref) => pref.prefCode === code)?.prefName || '';
+        setPopulationDataList((prev) => [...prev, { prefCode: code, prefName, data }]);
+      } catch (error) {
+        console.error('人口構成データの取得に失敗しました', error);
+      } finally {
+        setLoadingPrefCode(null);
+      }
+    }
+  };
 
   // チェックボックス切り替え
   const handleCheckboxChange = (prefCode: number) => {
@@ -186,7 +225,7 @@ const PrefectureSelector: React.FC = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '24px',
+            marginBottom: '16px',
             flexDirection: isMobile ? 'column' : 'row',
             gap: '16px',
           }}
@@ -252,6 +291,60 @@ const PrefectureSelector: React.FC = () => {
             >
               解除
             </button>
+          </div>
+        </div>
+
+        {/* 地方選択ボタン */}
+        <div
+          style={{
+            marginBottom: '24px',
+          }}
+        >
+          <p
+            style={{
+              fontSize: '14px',
+              color: '#6b7280',
+              margin: '0 0 8px 0',
+              fontWeight: '500',
+            }}
+          >
+            地方で一括選択
+          </p>
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              flexWrap: 'wrap',
+            }}
+          >
+            {Object.keys(REGION_MAP).map((region) => (
+              <button
+                key={region}
+                onClick={() => handleRegionSelect(region)}
+                style={{
+                  padding: '8px 12px',
+                  background: '#f3f4f6',
+                  color: '#1f2937',
+                  borderRadius: '6px',
+                  border: '1px solid #e5e7eb',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = '#e5e7eb';
+                  e.currentTarget.style.borderColor = '#d1d5db';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = '#f3f4f6';
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                }}
+              >
+                {region}
+              </button>
+            ))}
           </div>
         </div>
 
