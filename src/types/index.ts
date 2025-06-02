@@ -1,5 +1,4 @@
 export type Prefecture = {
-    prefCode: number;
-    prefName: string;
-  };
-  
+  prefCode: number;
+  prefName: string;
+};
